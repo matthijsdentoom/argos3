@@ -6,6 +6,7 @@
 
 #include "qtopengl_zebro.h"
 #include "zebro_entity.h"
+#include "zebro_dimensions.h"
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/core/utility/math/vector2.h>
 #include <argos3/core/utility/math/vector3.h>
@@ -14,29 +15,33 @@
 
 namespace argos {
 
-   /****************************************/
-   /****************************************/
+    /****************************************/
+    /****************************************/
 
-   /* All measures are in meters */
-
-   static const Real WHEEL_DIAMETER              = 0.041f;
-   static const Real WHEEL_RADIUS                = WHEEL_DIAMETER * 0.5f;
-   static const Real WHEEL_WIDTH                 = 0.01f;
-   static const Real HALF_WHEEL_WIDTH            = WHEEL_WIDTH * 0.5f;
-   static const Real INTERWHEEL_DISTANCE         = 0.053f;
+    /* All measures are in meters */
+   static const Real WHEEL_RADIUS                = CATERPILLAR_TRACK_HEIGHT * 0.5f;
+   static const Real HALF_WHEEL_WIDTH            = CATERPILLAR_TRACK_WIDTH * 0.5f;
+   static const Real INTERWHEEL_DISTANCE         = ZEBRO_WIDTH + 2 * SIDE_PANEL_WIDTH;
    static const Real HALF_INTERWHEEL_DISTANCE    = INTERWHEEL_DISTANCE * 0.5f;
 
    static const Real CHASSIS_ELEVATION           = 0.005f;                            // to be checked!
    static const Real HALF_CHASSIS_LENGTH         = 0.0275f;                             // to be checked!
    static const Real HALF_CHASSIS_WIDTH          = HALF_INTERWHEEL_DISTANCE - HALF_WHEEL_WIDTH;
 
-   static const Real BODY_RADIUS                 = 0.035f;
-   static const Real BODY_ELEVATION              = WHEEL_DIAMETER + CHASSIS_ELEVATION; // to be checked!
-   static const Real BODY_HEIGHT                 = 0.03f;                              // to be checked!
 
-   static const Real LED_ELEVATION               = BODY_ELEVATION + BODY_HEIGHT;
-   static const Real LED_HEIGHT                  = 0.01;                               // to be checked!
-   static const Real LED_UPPER_RING_INNER_RADIUS = 0.8 * BODY_RADIUS;
+   static const Real LED_SPACING                 = 0.02f;
+   static const Real LED_OUTER_RADIUS            = 0.035f;
+   static const Real LED_ELEVATION               = ZEBRO_ELEVATION + ZEBRO_HEIGHT;
+   static const Real LED_HEIGHT                  = 0.01f;                               // to be checked!
+   static const Real LED_UPPER_RING_INNER_RADIUS = 0.8 * LED_OUTER_RADIUS;
+
+   static const Real HEAD_BOX_HEIGHT             = 0.02f;
+   static const Real HEAD_BOX_WIDTH              = 0.03f;
+   static const Real HEAD_BOX_LENGTH             = 0.06f;
+
+   static const Real HEAD_HEIGHT             = 0.02f;
+   static const Real HEAD_WIDTH              = 0.05f;
+   static const Real HEAD_LENGTH             = 0.02f;
 
    /****************************************/
    /****************************************/
@@ -49,7 +54,7 @@ namespace argos {
 
       /* Assign indices for better referencing (later) */
       m_unWheelList   = m_unLists;
-      m_unChassisList = m_unLists + 1;
+      m_unHeadList    = m_unLists + 1;
       m_unBodyList    = m_unLists + 2;
       m_unLEDList     = m_unLists + 3;
 
@@ -63,14 +68,14 @@ namespace argos {
       RenderBody();
       glEndList();
 
-      /* Create the chassis display list */
-      glNewList(m_unChassisList, GL_COMPILE);
-      RenderChassis();
-      glEndList();
-
       /* Create the LED display list */
       glNewList(m_unLEDList, GL_COMPILE);
       RenderLED();
+      glEndList();
+
+      /* Create the Head display list */
+      glNewList(m_unHeadList, GL_COMPILE);
+      RenderHead();
       glEndList();
    }
 
@@ -84,22 +89,32 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   void CQTOpenGLZebro::DrawWheel(CVector2 translation)
+   {
+      glPushMatrix();
+      glTranslatef(translation.GetX(), translation.GetY(), 0.0f);
+      glCallList(m_unWheelList);
+      glPopMatrix();
+   }
+
+   /****************************************/
+   /****************************************/
+
    void CQTOpenGLZebro::Draw(CZebroEntity& c_entity) {
-      /* Place the chassis */
-      glCallList(m_unChassisList);
+
       /* Place the body */
       glCallList(m_unBodyList);
       /* Place the wheels */
-      glPushMatrix();
-      glTranslatef(0.0f, HALF_INTERWHEEL_DISTANCE, 0.0f);
-      glCallList(m_unWheelList);
-      glPopMatrix();
-      glPushMatrix();
-      glTranslatef(0.0f, -HALF_INTERWHEEL_DISTANCE, 0.0f);
-      glCallList(m_unWheelList);
-      glPopMatrix();
+      DrawWheel(CVector2(0.0f, HALF_INTERWHEEL_DISTANCE));
+      DrawWheel(CVector2(-0.1f, HALF_INTERWHEEL_DISTANCE - SIDE_PANEL_WIDTH));
+      DrawWheel(CVector2(0.1f, HALF_INTERWHEEL_DISTANCE - SIDE_PANEL_WIDTH));
+      DrawWheel(CVector2(0.0f, -HALF_INTERWHEEL_DISTANCE));
+      DrawWheel(CVector2(-0.1f, -HALF_INTERWHEEL_DISTANCE + SIDE_PANEL_WIDTH));
+      DrawWheel(CVector2(0.1f, -HALF_INTERWHEEL_DISTANCE + SIDE_PANEL_WIDTH));
+
       /* Place the LEDs */
       glPushMatrix();
+      glTranslatef(LED_SPACING + LED_OUTER_RADIUS, 0.0f, 0.0f);
       CLEDEquippedEntity& cLEDEquippedEntity = c_entity.GetLEDEquippedEntity();
       for(UInt32 i = 0; i < 8; i++) {
          const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
@@ -110,6 +125,26 @@ namespace argos {
          glCallList(m_unLEDList);
       }
       glPopMatrix();
+
+
+      /* Place the LEDs */
+      glPushMatrix();
+      glTranslatef(-(LED_SPACING + LED_OUTER_RADIUS), 0.0f, 0.0f);
+      for(UInt32 i = 0; i < 8; i++) {
+         const CColor& cColor = cLEDEquippedEntity.GetLED(i).GetColor();
+         glRotatef(-m_fLEDAngleSlice, 0.0f, 0.0f, 1.0f);
+         SetLEDMaterial(cColor.GetRed(),
+                        cColor.GetGreen(),
+                        cColor.GetBlue());
+         glCallList(m_unLEDList);
+      }
+      glPopMatrix();
+
+      /** Place the head. */
+      glPushMatrix();
+      glTranslatef(LED_SPACING + LED_OUTER_RADIUS, 0.0f, ZEBRO_HEIGHT + ZEBRO_ELEVATION);
+      glCallList(m_unHeadList);
+      glPopMatrix();
    }
 
    /****************************************/
@@ -118,7 +153,7 @@ namespace argos {
    void CQTOpenGLZebro::SetGreenPlasticMaterial() {
       const GLfloat pfColor[]     = {   0.0f, 1.0f, 0.0f, 1.0f };
       const GLfloat pfSpecular[]  = {   0.9f, 0.9f, 0.9f, 1.0f };
-      const GLfloat pfShininess[] = { 100.0f                   };
+      const GLfloat pfShininess[] = { 50.0f                   };
       const GLfloat pfEmission[]  = {   0.0f, 0.0f, 0.0f, 1.0f };
       glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, pfColor);
       glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR,            pfSpecular);
@@ -129,8 +164,8 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CQTOpenGLZebro::SetRedPlasticMaterial() {
-      const GLfloat pfColor[]     = {   1.0f, 0.0f, 0.0f, 1.0f };
+   void CQTOpenGLZebro::SetBlackPlasticMaterial() {
+      const GLfloat pfColor[]     = {   0.0f, 0.0f, 0.0f, 1.0f };
       const GLfloat pfSpecular[]  = {   0.9f, 0.9f, 0.9f, 1.0f };
       const GLfloat pfShininess[] = { 100.0f                   };
       const GLfloat pfEmission[]  = {   0.0f, 0.0f, 0.0f, 1.0f };
@@ -176,7 +211,7 @@ namespace argos {
 
    void CQTOpenGLZebro::RenderWheel() {
       /* Set material */
-      SetRedPlasticMaterial();
+      SetBlackPlasticMaterial();
       /* Right side */
       CVector2 cVertex(WHEEL_RADIUS, 0.0f);
       CRadians cAngle(CRadians::TWO_PI / m_unVertices);
@@ -190,6 +225,7 @@ namespace argos {
          cNormal.RotateY(cAngle);
       }
       glEnd();
+
       /* Left side */
       cVertex.Set(WHEEL_RADIUS, 0.0f);
       cNormal.Set(-1.0f, 1.0f, 0.0f);
@@ -203,6 +239,7 @@ namespace argos {
          cNormal.RotateY(cAngle);
       }
       glEnd();
+      
       /* Tire */
       cNormal.Set(1.0f, 0.0f, 0.0f);
       cVertex.Set(WHEEL_RADIUS, 0.0f);
@@ -218,98 +255,95 @@ namespace argos {
       glEnd();
    }
 
-   /****************************************/
-   /****************************************/
+   void CQTOpenGLZebro::RenderHead()
+   {
+      SetBlackPlasticMaterial();
+      
+      DrawBox(HEAD_BOX_WIDTH, HEAD_BOX_LENGTH, HEAD_BOX_HEIGHT, -HEAD_BOX_WIDTH / 2, -HEAD_BOX_LENGTH / 2, 0);
 
-   void CQTOpenGLZebro::RenderChassis() {
-      /* Set material */
-      SetGreenPlasticMaterial();
-      /* This part covers the bottom face (parallel to XY) */
-      glBegin(GL_QUADS);
-      /* Bottom face */
-      glNormal3f(0.0f, 0.0f, -1.0f);
-      glVertex3f( HALF_CHASSIS_LENGTH,  HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION);
-      glVertex3f( HALF_CHASSIS_LENGTH, -HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION);
-      glVertex3f(-HALF_CHASSIS_LENGTH, -HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION);
-      glVertex3f(-HALF_CHASSIS_LENGTH,  HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION);
-      glEnd();
-      /* This part covers the faces (South, East, North, West) */
-      glBegin(GL_QUAD_STRIP);
-      /* Starting side */
-      glNormal3f(-1.0f, 0.0f, 0.0f);
-      glVertex3f(-HALF_CHASSIS_LENGTH, -HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION + WHEEL_DIAMETER);
-      glVertex3f(-HALF_CHASSIS_LENGTH, -HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION);
-      /* South face */
-      glVertex3f( HALF_CHASSIS_LENGTH, -HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION + WHEEL_DIAMETER);
-      glVertex3f( HALF_CHASSIS_LENGTH, -HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION);
-      /* East face */
-      glNormal3f(0.0f, -1.0f, 0.0f);
-      glVertex3f( HALF_CHASSIS_LENGTH,  HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION + WHEEL_DIAMETER);
-      glVertex3f( HALF_CHASSIS_LENGTH,  HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION);
-      /* North face */
-      glNormal3f(1.0f, 0.0f, 0.0f);
-      glVertex3f(-HALF_CHASSIS_LENGTH,  HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION + WHEEL_DIAMETER);
-      glVertex3f(-HALF_CHASSIS_LENGTH,  HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION);
-      /* West face */
-      glNormal3f(0.0f, 1.0f, 0.0f);
-      glVertex3f(-HALF_CHASSIS_LENGTH, -HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION + WHEEL_DIAMETER);
-      glVertex3f(-HALF_CHASSIS_LENGTH, -HALF_CHASSIS_WIDTH, CHASSIS_ELEVATION);
-      glEnd();
+      glRotatef(0, 0, -0.5f, 0);
+      DrawBox(HEAD_WIDTH, HEAD_LENGTH, HEAD_HEIGHT, -HEAD_WIDTH / 2, HEAD_BOX_LENGTH, HEAD_BOX_HEIGHT + HEAD_HEIGHT);
    }
 
-   /****************************************/
-   /****************************************/
 
-   void CQTOpenGLZebro::RenderBody() {
-      /* Set material */
-      SetGreenPlasticMaterial();
-      CVector2 cVertex(BODY_RADIUS, 0.0f);
-      CRadians cAngle(-CRadians::TWO_PI / m_unVertices);
-      /* Bottom part */
-      glBegin(GL_POLYGON);
-      glNormal3f(0.0f, 0.0f, -1.0f);
-      for(GLuint i = 0; i <= m_unVertices; i++) {
-         glVertex3f(cVertex.GetX(), cVertex.GetY(), BODY_ELEVATION);
-         cVertex.Rotate(cAngle);
-      }
-      glEnd();
-      /* Side surface */
-      cAngle = -cAngle;
-      CVector2 cNormal(1.0f, 0.0f);
-      cVertex.Set(BODY_RADIUS, 0.0f);
-      glBegin(GL_QUAD_STRIP);
-      for(GLuint i = 0; i <= m_unVertices; i++) {
-         glNormal3f(cNormal.GetX(), cNormal.GetY(), 0.0f);
-         glVertex3f(cVertex.GetX(), cVertex.GetY(), BODY_ELEVATION + BODY_HEIGHT);
-         glVertex3f(cVertex.GetX(), cVertex.GetY(), BODY_ELEVATION);
-         cVertex.Rotate(cAngle);
-         cNormal.Rotate(cAngle);
-      }
-      glEnd();
-      /* Top part */
-      glBegin(GL_POLYGON);
-      cVertex.Set(LED_UPPER_RING_INNER_RADIUS, 0.0f);
-      glNormal3f(0.0f, 0.0f, 1.0f);
-      for(GLuint i = 0; i <= m_unVertices; i++) {
-         glVertex3f(cVertex.GetX(), cVertex.GetY(), BODY_ELEVATION + BODY_HEIGHT + LED_HEIGHT);
-         cVertex.Rotate(cAngle);
-      }
-      glEnd();
-      /* Triangle to set the direction */
-      SetLEDMaterial(1.0f, 1.0f, 0.0f);
-      glBegin(GL_TRIANGLES);
-      glVertex3f( BODY_RADIUS * 0.7,               0.0f, BODY_ELEVATION + BODY_HEIGHT + LED_HEIGHT + 0.001f);
-      glVertex3f(-BODY_RADIUS * 0.7,  BODY_RADIUS * 0.3, BODY_ELEVATION + BODY_HEIGHT + LED_HEIGHT + 0.001f);
-      glVertex3f(-BODY_RADIUS * 0.7, -BODY_RADIUS * 0.3, BODY_ELEVATION + BODY_HEIGHT + LED_HEIGHT + 0.001f);
-      glEnd();
-   }
+    /****************************************/
+    /****************************************/
+
+    void CQTOpenGLZebro::DrawBox(float length, float width, float height, float init_y, float init_x, float init_z) {
+
+        glTranslatef(init_x, init_y, init_z);
+
+        glBegin(GL_QUADS);
+
+        // Bottom plane
+        glNormal3f(0.0f, 0.0f, -1.0f);
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, length, 0);
+        glVertex3f(width, length, 0);
+        glVertex3f(width, 0, 0);
+
+
+        // Top plane
+        glVertex3f(0, 0, height);
+        glVertex3f(width, 0, height);
+        glVertex3f(width, length, height);
+        glVertex3f(0, length, height);
+
+        // left-side plane
+        glVertex3f(0, 0, 0);
+        glVertex3f(0, 0, height);
+        glVertex3f(0, length, height);
+        glVertex3f(0, length, 0);
+
+        // right-side plane
+        glVertex3f(width, 0, 0);
+        glVertex3f(width, length, 0);
+        glVertex3f(width, length, height);
+        glVertex3f(width, 0, height);
+
+        // Front plane
+        glVertex3f(0, 0, 0);
+        glVertex3f(width, 0, 0);
+        glVertex3f(width, 0, height);
+        glVertex3f(0, 0, height);
+
+        // Back plane
+        glVertex3f(0, length, 0);
+        glVertex3f(0, length, height);
+        glVertex3f(width, length, height);
+        glVertex3f(width, length, 0);
+        glEnd();
+
+
+        // Translate back.
+        glTranslatef(-init_x, -init_y, -init_z);
+
+    }
+
+    /****************************************/
+    /****************************************/
+
+    void CQTOpenGLZebro::RenderBody() {
+        /* Set material */
+        SetGreenPlasticMaterial();
+
+        // Draw main box.
+        //DrawBox(ZEBRO_WIDTH, ZEBRO_LENGTH, ZEBRO_HEIGHT, SIDE_PANEL_WIDTH - 0.5 * ZEBRO_WIDTH, -0.5 * ZEBRO_LENGTH, ZEBRO_ELEVATION);
+        DrawBox(ZEBRO_WIDTH, ZEBRO_LENGTH, ZEBRO_HEIGHT, - 0.5 * ZEBRO_WIDTH, -0.5 * ZEBRO_LENGTH, ZEBRO_ELEVATION);
+
+        // Draw left side panel
+        DrawBox(SIDE_PANEL_WIDTH, SIDE_PANEL_LENGTH, ZEBRO_HEIGHT, - 0.5 * ZEBRO_WIDTH - SIDE_PANEL_WIDTH, -SIDE_PANEL_LENGTH / 2, ZEBRO_ELEVATION);
+
+        // Draw right side panel
+        DrawBox(SIDE_PANEL_WIDTH, SIDE_PANEL_LENGTH, ZEBRO_HEIGHT, 0.5 * ZEBRO_WIDTH, -SIDE_PANEL_LENGTH / 2, ZEBRO_ELEVATION);
+    }
 
    /****************************************/
    /****************************************/
 
    void CQTOpenGLZebro::RenderLED() {
       /* Side surface */
-      CVector2 cVertex(BODY_RADIUS, 0.0f);
+      CVector2 cVertex(LED_OUTER_RADIUS, 0.0f);
       CRadians cAngle(CRadians::TWO_PI / m_unVertices);
       CVector2 cNormal(1.0f, 0.0f);
       glBegin(GL_QUAD_STRIP);
@@ -321,14 +355,15 @@ namespace argos {
          cNormal.Rotate(cAngle);
       }
       glEnd();
+
       /* Top surface  */
-      cVertex.Set(BODY_RADIUS, 0.0f);
+      cVertex.Set(LED_OUTER_RADIUS, 0.0f);
       CVector2 cVertex2(LED_UPPER_RING_INNER_RADIUS, 0.0f);
       glBegin(GL_QUAD_STRIP);
       glNormal3f(0.0f, 0.0f, 1.0f);      
       for(GLuint i = 0; i <= m_unVertices / 8; i++) {         
-         glVertex3f(cVertex2.GetX(), cVertex2.GetY(), BODY_ELEVATION + BODY_HEIGHT + LED_HEIGHT);
-         glVertex3f(cVertex.GetX(), cVertex.GetY(), BODY_ELEVATION + BODY_HEIGHT + LED_HEIGHT);
+         glVertex3f(cVertex2.GetX(), cVertex2.GetY(), ZEBRO_ELEVATION + ZEBRO_HEIGHT + LED_HEIGHT);
+         glVertex3f(cVertex.GetX(), cVertex.GetY(), ZEBRO_ELEVATION + ZEBRO_HEIGHT + LED_HEIGHT);
          cVertex.Rotate(cAngle);
          cVertex2.Rotate(cAngle);
       }
