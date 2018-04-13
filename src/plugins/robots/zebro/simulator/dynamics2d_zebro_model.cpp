@@ -5,6 +5,7 @@
  */
 
 #include "dynamics2d_zebro_model.h"
+#include "zebro_dimensions.h"
 #include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_gripping.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_engine.h>
 
@@ -12,12 +13,6 @@ namespace argos {
 
    /****************************************/
    /****************************************/
-
-   static const Real ZEBRO_MASS                = 0.4f;
-
-   static const Real ZEBRO_RADIUS              = 0.035f;
-   static const Real ZEBRO_INTERWHEEL_DISTANCE = 0.053f;
-   static const Real ZEBRO_HEIGHT              = 0.086f;
 
    static const Real ZEBRO_MAX_FORCE           = 1.5f;
    static const Real ZEBRO_MAX_TORQUE          = 1.5f;
@@ -39,30 +34,44 @@ namespace argos {
                       ZEBRO_MAX_FORCE,
                       ZEBRO_MAX_TORQUE,
                       ZEBRO_INTERWHEEL_DISTANCE),
-      m_fCurrentWheelVelocity(m_cWheeledEntity.GetWheelVelocities()) {
+      m_fCurrentWheelVelocity(m_cWheeledEntity.GetWheelVelocities()) 
+   {
+
+
+      //cpFloat cpMomentForPoly(cpFloat m, int numVerts, const cpVect *verts, cpVect offset);
+
+      // Create the corner points of the robot, currently without the wheels.
+      cpVect bodyCorners[4];
+      bodyCorners[0] = cpv(0, 0);
+      bodyCorners[1] = cpv(0, ZEBRO_WIDTH);
+      bodyCorners[2] = cpv(ZEBRO_LENGTH, ZEBRO_WIDTH);
+      bodyCorners[3] = cpv(ZEBRO_LENGTH, 0);
+
+      cpVect offset = {-ZEBRO_LENGTH / 2, -ZEBRO_WIDTH / 2};
+
       /* Create the body with initial position and orientation */
       cpBody* ptBody =
          cpSpaceAddBody(GetDynamics2DEngine().GetPhysicsSpace(),
                         cpBodyNew(ZEBRO_MASS,
-                                  cpMomentForCircle(ZEBRO_MASS,
-                                                    0.0f,
-                                                    ZEBRO_RADIUS + ZEBRO_RADIUS,
-                                                    cpvzero)));
+                           cpMomentForPoly(ZEBRO_MASS, 4, bodyCorners, offset)));
+
       const CVector3& cPosition = GetEmbodiedEntity().GetOriginAnchor().Position;
       ptBody->p = cpv(cPosition.GetX(), cPosition.GetY());
       CRadians cXAngle, cYAngle, cZAngle;
       GetEmbodiedEntity().GetOriginAnchor().Orientation.ToEulerAngles(cZAngle, cYAngle, cXAngle);
       cpBodySetAngle(ptBody, cZAngle.GetValue());
+
       /* Create the body shape */
       cpShape* ptShape =
          cpSpaceAddShape(GetDynamics2DEngine().GetPhysicsSpace(),
-                         cpCircleShapeNew(ptBody,
-                                          ZEBRO_RADIUS,
-                                          cpvzero));
+                         cpPolyShapeNew(ptBody, 4, bodyCorners, offset));
+
       ptShape->e = 0.0; // No elasticity
       ptShape->u = 0.7; // Lots of friction
+
       /* Constrain the actual base body to follow the diff steering control */
       m_cDiffSteering.AttachTo(ptBody);
+      
       /* Set the body so that the default methods work as expected */
       SetBody(ptBody, ZEBRO_HEIGHT);
    }
