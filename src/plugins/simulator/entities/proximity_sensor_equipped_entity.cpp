@@ -91,22 +91,48 @@ namespace argos {
             }
             else if(it->Value() == "ring") {
                CVector3 cRingCenter;
-               GetNodeAttributeOrDefault(t_tree, "center", cRingCenter, cRingCenter);
+               GetNodeAttributeOrDefault(*it, "center", cRingCenter, cRingCenter);
                Real fRadius;
-               GetNodeAttribute(t_tree, "radius", fRadius);
+               GetNodeAttribute(*it, "radius", fRadius);
                CDegrees cRingStartAngleDegrees;
-               GetNodeAttributeOrDefault(t_tree, "start_angle", cRingStartAngleDegrees, cRingStartAngleDegrees);
+               GetNodeAttributeOrDefault(*it, "start_angle", cRingStartAngleDegrees, cRingStartAngleDegrees);
                CRadians cRingStartAngleRadians = ToRadians(cRingStartAngleDegrees);
                Real fRange;
-               GetNodeAttribute(t_tree, "range", fRange);
+               GetNodeAttribute(*it, "range", fRange);
                UInt32 unNumSensors;
-               GetNodeAttribute(t_tree, "num_sensors", unNumSensors);
+               GetNodeAttribute(*it, "num_sensors", unNumSensors);
                AddSensorRing(cRingCenter,
                              fRadius,
                              cRingStartAngleRadians,
                              fRange,
                              unNumSensors,
                              cBody.GetAnchor(strAnchorId));
+            }
+            else if (it->Value() == "fan")
+            {
+               // Get the configuration parameters.
+               CVector3 cRingCenter;
+               GetNodeAttributeOrDefault(*it, "center", cRingCenter, cRingCenter);
+               Real fRadius;
+               GetNodeAttribute(*it, "radius", fRadius);
+               Real fRange;
+               GetNodeAttributeOrDefault(*it, "range", fRange, fRange);
+               UInt32 numSensors;
+               GetNodeAttributeOrDefault(*it, "num_sensors", numSensors, numSensors);
+               CDegrees cRingStartAngleDegrees;
+               GetNodeAttributeOrDefault(*it, "start_angle", cRingStartAngleDegrees, cRingStartAngleDegrees);
+               CRadians cRingStartAngleRadians = ToRadians(cRingStartAngleDegrees);
+               CDegrees cRingEndAngleDegrees;
+               GetNodeAttributeOrDefault(*it, "end_angle", cRingEndAngleDegrees, cRingEndAngleDegrees);
+               CRadians cRingEndAngleRadians = ToRadians(cRingEndAngleDegrees);
+               // Add the sensor fan.
+               AddSensorFan(cRingCenter,
+                            fRadius,
+                            cRingStartAngleRadians,
+                            cRingEndAngleRadians,
+                            fRange,
+                            numSensors,
+                            cBody.GetAnchor(strAnchorId));
             }
             else {
                THROW_ARGOSEXCEPTION("Unrecognized tag \"" << it->Value() << "\"");
