@@ -13,7 +13,6 @@ namespace argos {
    class CZebroEntity;
    class CGroundSensorEquippedEntity;
    class CLEDEquippedEntity;
-   class CLightSensorEquippedEntity;
    class CProximitySensorEquippedEntity;
    class CRABEquippedEntity;
    class CBatteryEquippedEntity;
@@ -64,10 +63,6 @@ namespace argos {
          return *m_pcLEDEquippedEntity;
       }
 
-      inline CLightSensorEquippedEntity& GetLightSensorEquippedEntity() {
-         return *m_pcLightSensorEquippedEntity;
-      }
-
       inline CProximitySensorEquippedEntity& GetProximitySensorEquippedEntity() {
          return *m_pcProximitySensorEquippedEntity;
       }
@@ -90,7 +85,10 @@ namespace argos {
 
    private:
 
-      void SetLEDPosition();
+       void SetLEDPosition();
+
+       /** Initialises the proximity sensor with the standard values. */
+       void initProximitySensor();
 
    private:
 
@@ -98,7 +96,6 @@ namespace argos {
       CEmbodiedEntity*                       m_pcEmbodiedEntity;
       CGroundSensorEquippedEntity*           m_pcGroundSensorEquippedEntity;
       CLEDEquippedEntity*                    m_pcLEDEquippedEntity;
-      CLightSensorEquippedEntity*            m_pcLightSensorEquippedEntity;
       CProximitySensorEquippedEntity*        m_pcProximitySensorEquippedEntity;
       CRABEquippedEntity*                    m_pcRABEquippedEntity;
       CWheeledEntity*                        m_pcWheeledEntity;

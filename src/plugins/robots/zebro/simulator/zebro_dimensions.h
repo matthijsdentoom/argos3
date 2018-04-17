@@ -8,7 +8,6 @@
 
 namespace argos
 {
-    
     static const Real ZEBRO_WIDTH                = 0.176f;    // Units in meters.
     static const Real ZEBRO_LENGTH               = 0.268f;
     static const Real ZEBRO_HEIGHT               = 0.063f;
@@ -17,6 +16,7 @@ namespace argos
     static const Real ZEBRO_MASS                = 2.1f;      // Mass in kg.
 
     static const Real ZEBRO_INTERWHEEL_DISTANCE = 0.176f;
+    static const Real ZEBRO_WHEEL_RADIUS        = 0.07f;
 
     // This variable gives the width of the side tracks.
     static const Real SIDE_PANEL_WIDTH          = 0.01f;
