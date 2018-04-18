@@ -5,7 +5,7 @@
  */
 
 #include "zebro_entity.h"
-#include "zebro_dimensions.h"
+#include "control_interface/zebro_dimensions.h"
 
 #include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
 #include <argos3/plugins/simulator/entities/ground_sensor_equipped_entity.h>

@@ -43,8 +43,6 @@ namespace argos {
 
    private:
 
-      Real CalculateReading(Real f_distance);
-
       /** Reference to embodied entity associated to this sensor */
       CEmbodiedEntity* m_pcEmbodiedEntity;
 

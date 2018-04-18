@@ -5,6 +5,7 @@
 set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ZEBRO_CONTROLINTERFACE
   # Add control interface headers here.
   control_interface/ci_zebro_proximity_sensor.h
+  control_interface/zebro_dimensions.h
 )
 
 # argos3/plugins/robots/zebro/simulator

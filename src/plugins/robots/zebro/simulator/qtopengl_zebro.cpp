@@ -6,7 +6,7 @@
 
 #include "qtopengl_zebro.h"
 #include "zebro_entity.h"
-#include "zebro_dimensions.h"
+#include "control_interface/zebro_dimensions.h"
 #include <argos3/core/simulator/entity/embodied_entity.h>
 #include <argos3/core/utility/math/vector2.h>
 #include <argos3/core/utility/math/vector3.h>

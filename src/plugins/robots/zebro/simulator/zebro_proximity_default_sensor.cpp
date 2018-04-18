@@ -13,10 +13,6 @@
 
 namespace argos {
 
-
-  
-   static CRange<Real> UNIT(0.0f, 1.0f);
-
    /****************************************/
    /****************************************/
 
@@ -107,7 +103,7 @@ namespace argos {
                                                             sIntersection.TOnRay);
                m_pcControllableEntity->AddCheckedRay(true, cScanningRay);
             }
-            m_tReadings[i].Value = CalculateReading(cScanningRay.GetDistance(sIntersection.TOnRay));
+            m_tReadings[i].Value = cScanningRay.GetDistance(sIntersection.TOnRay);
          }
          else {
             /* No intersection */
@@ -120,8 +116,9 @@ namespace argos {
          if(m_bAddNoise) {
             m_tReadings[i].Value += m_pcRNG->Uniform(m_cNoiseRange);
          }
-         /* Trunc the reading between 0 and 1 */
-         UNIT.TruncValue(m_tReadings[i].Value);
+         // Set the angle of the reading, for correct readings.
+         m_tReadings[i].Angle = CRadians(atan2(m_pcProximityEntity->GetSensor(i).Direction[1],
+                                               m_pcProximityEntity->GetSensor(i).Direction[0]));
       }
    }
 
@@ -134,13 +131,6 @@ namespace argos {
       }
    }
 
-
-   /****************************************/
-   /****************************************/
-
-   Real CZebroProximityDefaultSensor::CalculateReading(Real f_distance) {
-      return Exp(-f_distance);
-   }
 
    /****************************************/
    /****************************************/

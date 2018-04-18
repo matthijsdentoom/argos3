@@ -5,7 +5,7 @@
  */
 
 #include "dynamics2d_zebro_model.h"
-#include "zebro_dimensions.h"
+#include "control_interface/zebro_dimensions.h"
 #include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_gripping.h>
 #include <argos3/plugins/simulator/physics_engines/dynamics2d/dynamics2d_engine.h>
 
