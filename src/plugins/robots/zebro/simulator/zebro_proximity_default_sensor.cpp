@@ -107,7 +107,7 @@ namespace argos {
          }
          else {
             /* No intersection */
-            m_tReadings[i].Value = 0.0f;
+            m_tReadings[i].Value = INT_MAX;
             if(m_bShowRays) {
                m_pcControllableEntity->AddCheckedRay(false, cScanningRay);
             }
