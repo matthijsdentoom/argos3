@@ -29,6 +29,10 @@ namespace argos {
    static const Real PROXIMITY_SENSOR_RING_END_ANGLE       = -90.0f;
    static const Real PROXIMITY_SENSOR_RING_RANGE           = 5.0f;
 
+   // Standard settings for the range an bearing sensor of the zebro robot.
+   static const Real RAB_DEFAULT_RANGE                     = 15.0;
+   static const UInt32 RAB_MESSAGE_LENGTH                  = 2;
+
    static const CRadians LED_RING_START_ANGLE   = CRadians((ARGOS_PI / 8.0f) * 0.5f);
    static const Real LED_RING_RADIUS            = ZEBRO_INTERWHEEL_DISTANCE + 0.007;
    static const Real LED_RING_ELEVATION         = 0.086f;
@@ -204,18 +208,20 @@ namespace argos {
          m_pcGroundSensorEquippedEntity->AddSensor(CVector2(0.03f,  0.009f),
                                                    CGroundSensorEquippedEntity::TYPE_GRAYSCALE,
                                                    m_pcEmbodiedEntity->GetOriginAnchor());
+
          /* RAB equipped entity */
-         Real fRange = 0.8f;
-         GetNodeAttributeOrDefault(t_tree, "rab_range", fRange, fRange);
-         UInt32 unDataSize = 2;
-         GetNodeAttributeOrDefault(t_tree, "rab_data_size", unDataSize, unDataSize);
-         m_pcRABEquippedEntity = new CRABEquippedEntity(this,
-                                                        "rab_0",
-                                                        unDataSize,
-                                                        fRange,
-                                                        m_pcEmbodiedEntity->GetOriginAnchor(),
-                                                        *m_pcEmbodiedEntity,
-                                                        CVector3(0.0f, 0.0f, RAB_ELEVATION));
+         if(NodeExists(t_tree, "rab"))
+         {
+             m_pcRABEquippedEntity->Init(GetNode(t_tree, "rab"));
+         } else {
+             m_pcRABEquippedEntity = new CRABEquippedEntity(this,
+                                                            "rab_0",
+                                                            RAB_MESSAGE_LENGTH,
+                                                            RAB_DEFAULT_RANGE,
+                                                            m_pcEmbodiedEntity->GetOriginAnchor(),
+                                                            *m_pcEmbodiedEntity,
+                                                            CVector3(0.0f, 0.0f, RAB_ELEVATION));
+         }
          AddComponent(*m_pcRABEquippedEntity);
 
          /* Battery equipped entity */
