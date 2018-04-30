@@ -6,6 +6,8 @@
  * This file contains all dimensions of the zebro's such that they can be used physics as well as graphics.
  */
 
+#include <argos3/core/utility/datatypes/datatypes.h>
+
 namespace argos
 {
     static const Real ZEBRO_WIDTH               = 0.176f;    // Units in meters.

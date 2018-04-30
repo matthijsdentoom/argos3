@@ -5,6 +5,7 @@
 set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ZEBRO_CONTROLINTERFACE
   # Add control interface headers here.
   control_interface/ci_zebro_proximity_sensor.h
+  control_interface/ci_zebro_heading_sensor.h
   control_interface/zebro_dimensions.h
 )
 
@@ -15,6 +16,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/dynamics2d_zebro_model.h
     # simulator/physx_zebro_model.h
     simulator/zebro_entity.h
+    simulator/zebro_heading_default_sensor.h
     simulator/zebro_proximity_default_sensor.h)
 endif(ARGOS_BUILD_FOR_SIMULATOR)
 
@@ -24,6 +26,7 @@ endif(ARGOS_BUILD_FOR_SIMULATOR)
 set(ARGOS3_SOURCES_PLUGINS_ROBOTS_ZEBRO
   ${ARGOS3_HEADERS_PLUGINS_ROBOTS_ZEBRO_CONTROLINTERFACE}
   # Add control interface cpp files here.
+  control_interface/ci_zebro_heading_sensor.cpp
   control_interface/ci_zebro_proximity_sensor.cpp)
 
 if(ARGOS_BUILD_FOR_SIMULATOR)
@@ -34,6 +37,7 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/dynamics2d_zebro_model.cpp
     # simulator/physx_zebro_model.cpp
     simulator/zebro_entity.cpp
+    simulator/zebro_heading_default_sensor.cpp
     simulator/zebro_proximity_default_sensor.cpp)
   # Compile the graphical visualization only if the necessary libraries have been found
   if(ARGOS_COMPILE_QTOPENGL)

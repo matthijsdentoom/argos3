@@ -50,9 +50,9 @@ namespace argos {
       /**
        * Class destructor
        */
-      virtual ~CCI_ZebroProximitySensor() {}
+      virtual ~CCI_ZebroProximitySensor() = default;
 
-      /**
+       /**
        * Returns the readings of this sensor
        */
       const TReadings& GetReadings() const;
