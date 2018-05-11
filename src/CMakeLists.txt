@@ -8,6 +8,12 @@ cmake_minimum_required(VERSION 2.8.12)
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake)
 
+
+#
+# Set the build directory
+#
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ../build_simulator)
+
 #
 # Set CMake policies to select wanted behaviors
 #
