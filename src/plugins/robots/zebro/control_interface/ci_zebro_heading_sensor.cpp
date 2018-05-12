@@ -19,6 +19,7 @@ argos::CRadians argos::CCI_ZebroHeadingSensor::GetHeading()
     return m_cHeading;
 }
 
+#ifdef ARGOS_WITH_LUA
 void argos::CCI_ZebroHeadingSensor::CreateLuaState(lua_State *pt_lua_state)
 {
     CLuaUtility::OpenRobotStateTable(pt_lua_state, "heading");
@@ -27,7 +28,9 @@ void argos::CCI_ZebroHeadingSensor::CreateLuaState(lua_State *pt_lua_state)
     CLuaUtility::EndTable  (pt_lua_state);
     CLuaUtility::CloseRobotStateTable(pt_lua_state);
 }
+#endif
 
+#ifdef ARGOS_WITH_LUA
 void argos::CCI_ZebroHeadingSensor::ReadingsToLuaState(lua_State *pt_lua_state)
 {
     lua_getfield(pt_lua_state, -1, "heading");
@@ -37,3 +40,4 @@ void argos::CCI_ZebroHeadingSensor::ReadingsToLuaState(lua_State *pt_lua_state)
     lua_setfield  (pt_lua_state, -2, "angle"         );
     lua_pop(pt_lua_state, 2);
 }
+#endif
