@@ -20,12 +20,12 @@ namespace argos {
         delete m_cActualActuator;
     }
 
-    void CZebroLocomotionActuator::SetRobot(argos::CComposableEntity &c_entity)
+    void CZebroLocomotionActuator::SetRobot(CComposableEntity &c_entity)
     {
         m_cActualActuator->SetRobot(c_entity);
     }
 
-    void CZebroLocomotionActuator::Init(argos::TConfigurationNode &t_tree)
+    void CZebroLocomotionActuator::Init(TConfigurationNode &t_tree)
     {
         CCI_Actuator::Init(t_tree);
         m_cActualActuator->Init(t_tree);
@@ -56,21 +56,13 @@ namespace argos {
         m_fCurrentSpeed = 0;
     }
 
-    void CZebroLocomotionActuator::UpdateMovement(argos::Real f_speedFraction, argos::Real f_direction)
+    void CZebroLocomotionActuator::UpdateMovement(Real f_speedFraction, Real f_direction)
     {
-        f_direction = clip(f_direction, -1, 1);
-        f_speedFraction = clip(f_speedFraction, 0, 1);
+        f_direction = Clip(f_direction, -1, 1);
+        f_speedFraction = Clip(f_speedFraction, 0, 1);
 
         m_fCurrentSpeed = f_speedFraction;
         m_fCurrentDirection = f_direction;
-    }
-
-    Real CZebroLocomotionActuator::clip(Real value, Real minValue, Real maxValue)
-    {
-        value = fmax(minValue, value);
-        value = fmin(maxValue, value);
-
-        return value;
     }
 
     REGISTER_ACTUATOR(CZebroLocomotionActuator,

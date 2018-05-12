@@ -35,6 +35,8 @@ namespace argos {
 
 #endif
 
+        /** This function clips the given value between the given values. */
+        Real Clip(Real value, Real minValue, Real maxValue);
 
     protected:
 

@@ -47,9 +47,6 @@ namespace argos
 
         /* Indicate the maximum turn speed of the robot. (rad/s)*/
         Real m_fMaxAngularVelocity;
-
-        /** This function clips the given value between the given values. */
-        Real clip(Real value, Real minValue, Real maxValue);
     };
 }
 
