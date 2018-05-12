@@ -78,3 +78,8 @@ install(TARGETS argos3plugin_${ARGOS_BUILD_FOR}_zebro
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib/argos3
   ARCHIVE DESTINATION lib/argos3)
+
+#
+# Create a folder with the files required for cross-compilation of the ZebroRobot with the raspberry pi.
+#
+include(CreateCrossCompFolderForRpi.cmake)
