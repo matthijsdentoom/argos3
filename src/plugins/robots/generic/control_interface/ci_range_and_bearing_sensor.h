@@ -14,7 +14,7 @@ namespace argos {
 #include <argos3/core/control_interface/ci_sensor.h>
 #include <argos3/core/utility/datatypes/datatypes.h>
 #include <argos3/core/utility/datatypes/byte_array.h>
-#include <argos3/core/utility/math/quaternion.h>
+#include <argos3/core/utility/math/angles.h>
 
 namespace argos {
 
