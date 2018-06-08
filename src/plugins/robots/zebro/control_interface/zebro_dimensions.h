@@ -20,7 +20,7 @@ namespace argos
 
     static const Real ZEBRO_MASS                = 2.1f;      // Mass in kg.
     static const Real ZEBRO_MAX_SPEED           = 10.0f;     // speed in cm/s
-    static const Real ZEBRO_MAX_ANGULAR_VELOCITY= ZEBRO_MAX_SPEED / (ZEBRO_INTERWHEEL_DISTANCE * 100);  // Rad/s
+    static const Real ZEBRO_MAX_ANGULAR_VELOCITY= ZEBRO_MAX_SPEED / (ZEBRO_INTERWHEEL_DISTANCE * 100) / 4;  // Rad/s
 
     // This variable gives the width of the side tracks.
     static const Real SIDE_PANEL_WIDTH          = 0.01f;

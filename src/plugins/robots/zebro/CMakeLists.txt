@@ -19,7 +19,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/zebro_entity.h
     simulator/zebro_heading_default_sensor.h
     simulator/zebro_proximity_default_sensor.h
-    simulator/zebro_locomotion_actuator.h)
+    simulator/zebro_locomotion_actuator.h
+    simulator/zebro_uwb_sensor.h)
 endif(ARGOS_BUILD_FOR_SIMULATOR)
 
 #
@@ -43,7 +44,8 @@ if(ARGOS_BUILD_FOR_SIMULATOR)
     simulator/zebro_entity.cpp
     simulator/zebro_heading_default_sensor.cpp
     simulator/zebro_proximity_default_sensor.cpp
-    simulator/zebro_locomotion_actuator.cpp)
+    simulator/zebro_locomotion_actuator.cpp
+    simulator/zebro_uwb_sensor.cpp)
   # Compile the graphical visualization only if the necessary libraries have been found
   if(ARGOS_COMPILE_QTOPENGL)
     set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ZEBRO_SIMULATOR
