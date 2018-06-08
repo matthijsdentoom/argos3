@@ -4,13 +4,18 @@
 
 #include "zebro_uwb_sensor.h"
 #include <argos3/core/simulator/entity/composable_entity.h>
+#include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
+#include <argos3/core/simulator/entity/controllable_entity.h>
 
 namespace argos
 {
 
     CZebroUWBSensor::CZebroUWBSensor() :
+            m_pcRangeAndBearingEquippedEntity(nullptr),
+            m_pcControllableEntity(nullptr),
             cRabSensor(new CRangeAndBearingMediumSensor()),
-            m_maxReadings(INT32_MAX)
+            m_maxReadings(INT32_MAX),
+            m_bShowRays(false)
     {}
 
 
@@ -22,6 +27,11 @@ namespace argos
 
     void CZebroUWBSensor::SetRobot(CComposableEntity &c_entity)
     {
+        /* Assign RAB equipped entity to this sensor */
+        m_pcRangeAndBearingEquippedEntity = &c_entity.GetComponent<CRABEquippedEntity>("rab");
+        /* Get reference to controllable entity */
+        m_pcControllableEntity = &c_entity.GetComponent<CControllableEntity>("controller");
+
         cRabSensor->SetRobot(c_entity);
     }
 
@@ -31,6 +41,7 @@ namespace argos
         CCI_RangeAndBearingSensor::Init(t_tree);
         cRabSensor->Init(t_tree);
         GetNodeAttributeOrDefault(t_tree, "max_neighbours", m_maxReadings, m_maxReadings);
+        GetNodeAttributeOrDefault(t_tree, "show_used_rays", m_bShowRays, m_bShowRays);
     }
 
 
@@ -49,6 +60,12 @@ namespace argos
                 insertIfCloserThanFarthestNode(reading);
             }
         }
+
+        if (m_bShowRays)
+        {
+            showRays();
+        }
+
 
         // Note that seeing behind other robots is possible here, since that would also be possible
         // with the UWB sensor itself.
@@ -89,6 +106,23 @@ namespace argos
     }
 
 
+    void CZebroUWBSensor::showRays()
+    {
+        for (const SPacket &reading : m_tReadings) {
+
+            CVector3 directionVector = CVector3(reading.Range / 100, 0, 0).RotateZ(reading.HorizontalBearing);
+
+            // Rotate with the orientation of this robot to point to the direct point.
+            directionVector.Rotate(m_pcRangeAndBearingEquippedEntity->GetOrientation());
+
+            m_pcControllableEntity->AddCheckedRay(false,
+                                                  CRay3(m_pcRangeAndBearingEquippedEntity->GetPosition(),
+                                                        m_pcRangeAndBearingEquippedEntity->GetPosition()
+                                                        + directionVector));
+        }
+    }
+
+
     REGISTER_SENSOR(CZebroUWBSensor,
                     "range_and_bearing", "zebro-uwb",
                     "Matthijs den Toom [m.denToom@student.tudelft.nl]",
@@ -108,6 +142,23 @@ namespace argos
                     "        <range_and_bearing implementation=\"zebro-uwb\"\n"
                     "                           medium=\"rab\"\n"
                     "                           max_neighbours=\"10\" />\n"
+                    "        ...\n"
+                    "      </sensors>\n"
+                    "      ...\n"
+                    "    </my_controller>\n"
+                    "    ...\n"
+                    "  </controllers>\n"
+                    "Additionally, instead of all rays only the rays that are actually being used by the sensor can be"
+                    "shown by defining show_used_rays:"
+                    "  <controllers>\n"
+                    "    ...\n"
+                    "    <my_controller ...>\n"
+                    "      ...\n"
+                    "      <sensors>\n"
+                    "        ...\n"
+                    "        <range_and_bearing implementation=\"zebro-uwb\"\n"
+                    "                           medium=\"rab\"\n"
+                    "                           show_used_rays=\"true\" />\n"
                     "        ...\n"
                     "      </sensors>\n"
                     "      ...\n"

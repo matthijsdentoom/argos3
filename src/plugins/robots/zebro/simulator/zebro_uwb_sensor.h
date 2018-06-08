@@ -33,15 +33,29 @@ namespace argos {
         virtual void Destroy();
 
     private:
+
+        CRABEquippedEntity*  m_pcRangeAndBearingEquippedEntity;
+
+        CControllableEntity* m_pcControllableEntity;
+
         CRangeAndBearingMediumSensor *cRabSensor;
 
         UInt32 m_maxReadings;
+
+        bool m_bShowRays;
+
         /**
          * Insert the given packet in the list of readings, if it is closer than the farrest.
          * In case it is closes the farrest element is removed.
          * @param packet        - The packet that might be inserted.
          */
         void insertIfCloserThanFarthestNode(SPacket packet);
+
+
+        /**
+         * This function shows the rays to the uwb objects used in this round.
+         */
+        void showRays();
     };
 }
 
