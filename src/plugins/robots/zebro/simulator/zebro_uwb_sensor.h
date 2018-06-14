@@ -45,6 +45,8 @@ namespace argos {
         CSpace&              m_cSpace;
         bool                 m_bShowRays;
         UInt32               m_iMaxReadings;
+        /** Noise range on angle */
+        CRange<CRadians>     m_cAngleNoiseRange;
 
         /**
          * Insert the given packet in the list of readings, if it is closer than the farrest.
@@ -59,9 +61,8 @@ namespace argos {
          */
         void showRays();
 
-        void insertIfCloserThanFarthestNode(CCI_RangeAndBearingSensor::SPacket packet);
-
         CRadians GetRelativeHeading(CRABEquippedEntity cRABEntity);
+
     };
 }
 

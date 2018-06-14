@@ -6,7 +6,6 @@
 #include <argos3/core/simulator/entity/composable_entity.h>
 #include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
 #include <argos3/core/simulator/entity/controllable_entity.h>
-#include <plugins/robots/generic/simulator/positioning_default_sensor.h>
 #include <argos3/core/simulator/simulator.h>
 #include <argos3/plugins/simulator/media/rab_medium.h>
 
@@ -20,7 +19,7 @@ namespace argos
             m_fPacketDropProb(0.0f),
             m_pcRNG(nullptr),
             m_cSpace(CSimulator::GetInstance().GetSpace()),
-            m_bShowRays(false) {}
+            m_bShowRays(false){ }
 
 
     void CZebroUWBSensor::SetRobot(CComposableEntity &c_entity)
@@ -43,8 +42,13 @@ namespace argos
             GetNodeAttributeOrDefault(t_tree, "noise_std_dev", m_fDistanceNoiseStdDev, m_fDistanceNoiseStdDev);
             GetNodeAttributeOrDefault(t_tree, "packet_drop_prob", m_fPacketDropProb, m_fPacketDropProb);
             GetNodeAttributeOrDefault(t_tree, "max_neighbours", m_iMaxReadings, m_iMaxReadings);
+
+            CRange<CDegrees> cDegreeNoise;
+            GetNodeAttributeOrDefault(t_tree, "angle_noise_range", cDegreeNoise, cDegreeNoise);
+            m_cAngleNoiseRange.Set(ToRadians(cDegreeNoise.GetMin()), ToRadians(cDegreeNoise.GetMax()));
+
             if((m_fPacketDropProb > 0.0f) ||
-               (m_fDistanceNoiseStdDev > 0.0f)) {
+               (m_fDistanceNoiseStdDev > 0.0f) || m_cAngleNoiseRange.GetSpan() != CRadians::ZERO) {
                 m_pcRNG = CRandom::CreateRNG("argos");
             }
             /* Get RAB medium from id specified in the XML */
@@ -145,6 +149,12 @@ namespace argos
         cRABEntity.GetOrientation().ToEulerAngles(otherHeading, tmp, tmp);
         m_pcRangeAndBearingEquippedEntity->GetOrientation().ToEulerAngles(ownHeading, tmp, tmp);
 
+        if (m_cAngleNoiseRange.GetSpan() != CRadians::ZERO)
+        {   // Add noise if required.
+            otherHeading += CRadians(m_pcRNG->Uniform(m_cAngleNoiseRange));
+            ownHeading += CRadians(m_pcRNG->Uniform(m_cAngleNoiseRange));
+        }
+
         return ownHeading - otherHeading;
     }
 
@@ -235,7 +245,9 @@ namespace argos
                     "      ...\n"
                     "    </my_controller>\n"
                     "    ...\n"
-                    "  </controllers>\n",
+                    "  </controllers>\n"
+                    "Attribute 'angle_noise_range' sets the noise range on the angle\n"
+                    "(values expressed in degrees).",
                     "Usable");
 
 }
