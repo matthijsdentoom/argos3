@@ -7,6 +7,7 @@ set(ARGOS3_HEADERS_PLUGINS_ROBOTS_ZEBRO_CONTROLINTERFACE
   control_interface/ci_zebro_proximity_sensor.h
   control_interface/ci_zebro_heading_sensor.h
   control_interface/ci_zebro_locomotion_actuator.h
+  control_interface/ci_zebro_localisation_sensor.h
   control_interface/zebro_dimensions.h
 )
 
@@ -32,6 +33,7 @@ set(ARGOS3_SOURCES_PLUGINS_ROBOTS_ZEBRO
   control_interface/ci_zebro_heading_sensor.cpp
   control_interface/ci_zebro_proximity_sensor.cpp
   control_interface/ci_zebro_locomotion_actuator.cpp
+  control_interface/ci_zebro_localisation_sensor.cpp
         )
 
 if(ARGOS_BUILD_FOR_SIMULATOR)

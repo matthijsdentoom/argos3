@@ -68,8 +68,6 @@ set(GENERAL_SENSOR_DIRECTORY plugins/robots/generic/control_interface)
 file(COPY
         ${CMAKE_SOURCE_DIR}/${GENERAL_SENSOR_DIRECTORY}/ci_range_and_bearing_actuator.cpp
         ${CMAKE_SOURCE_DIR}/${GENERAL_SENSOR_DIRECTORY}/ci_range_and_bearing_actuator.h
-        ${CMAKE_SOURCE_DIR}/${GENERAL_SENSOR_DIRECTORY}/ci_range_and_bearing_sensor.cpp
-        ${CMAKE_SOURCE_DIR}/${GENERAL_SENSOR_DIRECTORY}/ci_range_and_bearing_sensor.h
         DESTINATION
         ${RPI_SOURCE_FOLDER}/${GENERAL_SENSOR_DIRECTORY})
 

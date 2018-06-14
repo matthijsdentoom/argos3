@@ -6,23 +6,21 @@
 #include <argos3/core/simulator/entity/composable_entity.h>
 #include <argos3/plugins/simulator/entities/rab_equipped_entity.h>
 #include <argos3/core/simulator/entity/controllable_entity.h>
+#include <plugins/robots/generic/simulator/positioning_default_sensor.h>
+#include <argos3/core/simulator/simulator.h>
+#include <argos3/plugins/simulator/media/rab_medium.h>
 
 namespace argos
 {
+    CRange<CRadians> INCLINATION_RANGE(CRadians(0), CRadians(ARGOS_PI));
 
     CZebroUWBSensor::CZebroUWBSensor() :
             m_pcRangeAndBearingEquippedEntity(nullptr),
-            m_pcControllableEntity(nullptr),
-            cRabSensor(new CRangeAndBearingMediumSensor()),
-            m_maxReadings(INT32_MAX),
-            m_bShowRays(false)
-    {}
-
-
-    CZebroUWBSensor::~CZebroUWBSensor()
-    {
-        delete cRabSensor;
-    }
+            m_fDistanceNoiseStdDev(0.0f),
+            m_fPacketDropProb(0.0f),
+            m_pcRNG(nullptr),
+            m_cSpace(CSimulator::GetInstance().GetSpace()),
+            m_bShowRays(false) {}
 
 
     void CZebroUWBSensor::SetRobot(CComposableEntity &c_entity)
@@ -31,33 +29,105 @@ namespace argos
         m_pcRangeAndBearingEquippedEntity = &c_entity.GetComponent<CRABEquippedEntity>("rab");
         /* Get reference to controllable entity */
         m_pcControllableEntity = &c_entity.GetComponent<CControllableEntity>("controller");
-
-        cRabSensor->SetRobot(c_entity);
     }
 
 
     void CZebroUWBSensor::Init(TConfigurationNode &t_tree)
     {
-        CCI_RangeAndBearingSensor::Init(t_tree);
-        cRabSensor->Init(t_tree);
-        GetNodeAttributeOrDefault(t_tree, "max_neighbours", m_maxReadings, m_maxReadings);
-        GetNodeAttributeOrDefault(t_tree, "show_used_rays", m_bShowRays, m_bShowRays);
+        try {
+            /* Parent class init */
+            CCI_ZebroLocalisationSensor::Init(t_tree);
+            /* Show rays? */
+            GetNodeAttributeOrDefault(t_tree, "show_rays", m_bShowRays, m_bShowRays);
+            /* Parse noise */
+            GetNodeAttributeOrDefault(t_tree, "noise_std_dev", m_fDistanceNoiseStdDev, m_fDistanceNoiseStdDev);
+            GetNodeAttributeOrDefault(t_tree, "packet_drop_prob", m_fPacketDropProb, m_fPacketDropProb);
+            GetNodeAttributeOrDefault(t_tree, "max_neighbours", m_iMaxReadings, m_iMaxReadings);
+            if((m_fPacketDropProb > 0.0f) ||
+               (m_fDistanceNoiseStdDev > 0.0f)) {
+                m_pcRNG = CRandom::CreateRNG("argos");
+            }
+            /* Get RAB medium from id specified in the XML */
+            std::string strMedium;
+            GetNodeAttribute(t_tree, "medium", strMedium);
+            m_pcRangeAndBearingMedium = &(CSimulator::GetInstance().GetMedium<CRABMedium>(strMedium));
+            /* Assign RAB entity to the medium */
+            m_pcRangeAndBearingEquippedEntity->SetMedium(*m_pcRangeAndBearingMedium);
+            /* Enable the RAB equipped entity */
+            m_pcRangeAndBearingEquippedEntity->Enable();
+        }
+        catch(CARGoSException& ex) {
+            THROW_ARGOSEXCEPTION_NESTED("Error initializing the range and bearing medium sensor", ex);
+        }
     }
 
 
     void CZebroUWBSensor::Update()
     {
-        /** Delete old packets. */
+        /* Delete old readings */
         m_tReadings.clear();
-        // Update the sensor.
-        cRabSensor->Update();
-        TReadings tempReadings = cRabSensor->GetReadings();
+        /* Get list of communicating RABs */
+        const CSet<CRABEquippedEntity*,SEntityComparator>& setRABs = m_pcRangeAndBearingMedium->GetRABsCommunicatingWith(*m_pcRangeAndBearingEquippedEntity);
+        /* Buffer for calculating the message--robot distance */
+        CVector3 cVectorRobotToMessage;
+        /* Buffer for the received packet */
+        CCI_ZebroLocalisationSensor::SPacket sPacket;
+        /* Go through communicating RABs and create packets */
+        for(CSet<CRABEquippedEntity*>::iterator it = setRABs.begin();
+            it != setRABs.end(); ++it) {
+            /* Should we drop this packet? */
+            if(m_pcRNG == nullptr || /* No noise to apply */
+               !(m_fPacketDropProb > 0.0f &&
+                 m_pcRNG->Bernoulli(m_fPacketDropProb)) /* Packet is not dropped */
+                    ) {
+                /* Create a reference to the RAB entity to process */
+                CRABEquippedEntity& cRABEntity = **it;
+                /* Calculate vector to entity */
+                cVectorRobotToMessage = cRABEntity.GetPosition();
+                cVectorRobotToMessage -= m_pcRangeAndBearingEquippedEntity->GetPosition();
+                /* If noise was setup, add it */
+                if(m_pcRNG && m_fDistanceNoiseStdDev > 0.0f) {
+                    cVectorRobotToMessage += CVector3(
+                            m_pcRNG->Gaussian(m_fDistanceNoiseStdDev),
+                            m_pcRNG->Uniform(INCLINATION_RANGE),
+                            m_pcRNG->Uniform(CRadians::UNSIGNED_RANGE));
+                }
+                /*
+                 * Set range and bearing from cVectorRobotToMessage
+                 * First, we must rotate the cVectorRobotToMessage so that
+                 * it is local to the robot coordinate system. To do this,
+                 * it enough to rotate cVectorRobotToMessage by the inverse
+                 * of the robot orientation.
+                 */
+                cVectorRobotToMessage.Rotate(m_pcRangeAndBearingEquippedEntity->GetOrientation().Inverse());
+                cVectorRobotToMessage.ToSphericalCoords(sPacket.Range,
+                                                        sPacket.VerticalBearing,
+                                                        sPacket.HorizontalBearing);
+                /* Convert range to cm */
+                sPacket.Range *= 100.0f;
+                /* Normalize horizontal bearing between [-pi,pi] */
+                sPacket.HorizontalBearing.SignedNormalize();
+                /*
+                 * The vertical bearing is defined as the angle between the local
+                 * robot XY plane and the message source position, i.e., the elevation
+                 * in math jargon. However, cVectorRobotToMessage.ToSphericalCoords()
+                 * sets sPacket.VerticalBearing to the inclination, which is the angle
+                 * between the azimuth vector (robot local Z axis) and
+                 * cVectorRobotToMessage. Elevation = 90 degrees - Inclination.
+                 */
+                sPacket.VerticalBearing.Negate();
+                sPacket.VerticalBearing += CRadians::PI_OVER_TWO;
+                sPacket.VerticalBearing.SignedNormalize();
+                /* Set the address of the robot */
+                sPacket.Address = cRABEntity.GetData()[0];
+                sPacket.RelativeHeading = GetRelativeHeading(cRABEntity);
 
-        for (const SPacket &reading : tempReadings) {
-            if (m_tReadings.size() < m_maxReadings) {
-                m_tReadings.push_back(reading);
-            } else {
-                insertIfCloserThanFarthestNode(reading);
+                // Insert the closest of the measurements.
+                if (m_tReadings.size() < m_iMaxReadings) {
+                    m_tReadings.push_back(sPacket);
+                } else {
+                    insertIfCloserThanFarthestNode(sPacket);
+                }
             }
         }
 
@@ -65,31 +135,32 @@ namespace argos
         {
             showRays();
         }
+    }
 
+    CRadians CZebroUWBSensor::GetRelativeHeading(CRABEquippedEntity cRABEntity)
+    {
+        CRadians tmp;
+        CRadians otherHeading;
+        CRadians ownHeading;
+        cRABEntity.GetOrientation().ToEulerAngles(otherHeading, tmp, tmp);
+        m_pcRangeAndBearingEquippedEntity->GetOrientation().ToEulerAngles(ownHeading, tmp, tmp);
 
-        // Note that seeing behind other robots is possible here, since that would also be possible
-        // with the UWB sensor itself.
-
-        //TODO: filter out robots that are behind each other.
-        //TODO: give distance color to rays.
-
+        return ownHeading - otherHeading;
     }
 
     void CZebroUWBSensor::Reset()
     {
-        cRabSensor->Reset();
-        CCI_RangeAndBearingSensor::Reset();
+        m_tReadings.clear();
     }
 
 
     void CZebroUWBSensor::Destroy()
     {
-        cRabSensor->Destroy();
-        CCI_RangeAndBearingSensor::Destroy();
+        m_pcRangeAndBearingMedium->RemoveEntity(*m_pcRangeAndBearingEquippedEntity);
     }
 
 
-    void CZebroUWBSensor::insertIfCloserThanFarthestNode(CCI_RangeAndBearingSensor::SPacket packet)
+    void CZebroUWBSensor::insertIfCloserThanFarthestNode(CCI_ZebroLocalisationSensor::SPacket packet)
     {
         // Get the farrest element
         UInt32 iIndexOfFarrest = 0;

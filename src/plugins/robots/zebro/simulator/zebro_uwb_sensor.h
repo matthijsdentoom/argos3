@@ -9,18 +9,20 @@ namespace argos {
     class CZebroUWBSensor;
 }
 
-#include <argos3/plugins/robots/generic/control_interface/ci_range_and_bearing_sensor.h>
 #include <argos3/core/simulator/sensor.h>
-#include <argos3/plugins/robots/generic/simulator/range_and_bearing_medium_sensor.h>
+#include <plugins/robots/zebro/control_interface/ci_zebro_localisation_sensor.h>
+#include <plugins/simulator/entities/rab_equipped_entity.h>
+#include <plugins/robots/generic/simulator/range_and_bearing_medium_sensor.h>
+#include "zebro_heading_default_sensor.h"
 
 namespace argos {
     class CZebroUWBSensor : public CSimulatedSensor,
-                            public CCI_RangeAndBearingSensor
+                            public CCI_ZebroLocalisationSensor
     {
     public:
         CZebroUWBSensor();
 
-        virtual ~CZebroUWBSensor();
+        virtual ~CZebroUWBSensor() = default;
 
         virtual void SetRobot(CComposableEntity& c_entity);
 
@@ -35,14 +37,14 @@ namespace argos {
     private:
 
         CRABEquippedEntity*  m_pcRangeAndBearingEquippedEntity;
-
         CControllableEntity* m_pcControllableEntity;
-
-        CRangeAndBearingMediumSensor *cRabSensor;
-
-        UInt32 m_maxReadings;
-
-        bool m_bShowRays;
+        CRABMedium*          m_pcRangeAndBearingMedium;
+        Real                 m_fDistanceNoiseStdDev;
+        Real                 m_fPacketDropProb;
+        CRandom::CRNG*       m_pcRNG;
+        CSpace&              m_cSpace;
+        bool                 m_bShowRays;
+        UInt32               m_iMaxReadings;
 
         /**
          * Insert the given packet in the list of readings, if it is closer than the farrest.
@@ -56,6 +58,10 @@ namespace argos {
          * This function shows the rays to the uwb objects used in this round.
          */
         void showRays();
+
+        void insertIfCloserThanFarthestNode(CCI_RangeAndBearingSensor::SPacket packet);
+
+        CRadians GetRelativeHeading(CRABEquippedEntity cRABEntity);
     };
 }
 
