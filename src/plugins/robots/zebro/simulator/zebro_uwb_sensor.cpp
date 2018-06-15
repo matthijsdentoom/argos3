@@ -59,6 +59,8 @@ namespace argos
             m_pcRangeAndBearingEquippedEntity->SetMedium(*m_pcRangeAndBearingMedium);
             /* Enable the RAB equipped entity */
             m_pcRangeAndBearingEquippedEntity->Enable();
+
+            InitAddress();
         }
         catch(CARGoSException& ex) {
             THROW_ARGOSEXCEPTION_NESTED("Error initializing the range and bearing medium sensor", ex);
@@ -202,6 +204,20 @@ namespace argos
                                                         + directionVector));
         }
     }
+
+
+    void CZebroUWBSensor::InitAddress()
+    {
+        // Generate identifier of this sensor.
+        CRandom::CRNG* pcIdGenerator = CRandom::CreateRNG("argos");
+        m_iAddress = (UInt16) pcIdGenerator->Uniform(CRange<UInt32>(0, 255));
+
+        // Set the identifier in the
+        CByteArray dataArray(m_pcRangeAndBearingEquippedEntity->GetMsgSize());
+        dataArray[0] = (UInt8) m_iAddress;
+        m_pcRangeAndBearingEquippedEntity->SetData(dataArray);
+    }
+
 
 
     REGISTER_SENSOR(CZebroUWBSensor,

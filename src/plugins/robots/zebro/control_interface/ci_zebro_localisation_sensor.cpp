@@ -20,7 +20,7 @@ const CCI_ZebroLocalisationSensor::TReadings& CCI_ZebroLocalisationSensor::GetRe
 
 #ifdef ARGOS_WITH_LUA
 void CCI_ZebroLocalisationSensor::CreateLuaState(lua_State* pt_lua_state) {
-    CLuaUtility::OpenRobotStateTable(pt_lua_state, "range_and_bearing");
+    CLuaUtility::OpenRobotStateTable(pt_lua_state, "zebro_localisation");
     for(size_t i = 0; i < m_tReadings.size(); ++i) {
         CLuaUtility::StartTable(pt_lua_state, i + 1);
         CLuaUtility::AddToTable(pt_lua_state, "address", m_tReadings[i].Address);
@@ -39,7 +39,7 @@ void CCI_ZebroLocalisationSensor::CreateLuaState(lua_State* pt_lua_state) {
 
 #ifdef ARGOS_WITH_LUA
 void CCI_ZebroLocalisationSensor::ReadingsToLuaState(lua_State* pt_lua_state) {
-    lua_getfield(pt_lua_state, -1, "range_and_bearing");
+    lua_getfield(pt_lua_state, -1, "zebro_localisation");
     /* Save the number of elements in the RAB table */
     size_t unLastMsgNum = lua_rawlen(pt_lua_state, -1);
     /* Overwrite the table with the new messages */
@@ -63,6 +63,12 @@ void CCI_ZebroLocalisationSensor::ReadingsToLuaState(lua_State* pt_lua_state) {
     }
     lua_pop(pt_lua_state, 1);
 }
+
+const UInt16 CCI_ZebroLocalisationSensor::GetAddress() const
+{
+    return m_iAddress;
+}
+
 #endif
 
 /****************************************/

@@ -63,6 +63,7 @@ namespace argos {
 
         CRadians GetRelativeHeading(CRABEquippedEntity cRABEntity);
 
+        void InitAddress();
     };
 }
 

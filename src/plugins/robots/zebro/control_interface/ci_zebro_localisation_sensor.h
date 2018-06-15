@@ -46,6 +46,8 @@ namespace argos {
 
         const TReadings& GetReadings() const;
 
+        const UInt16 GetAddress() const;
+
     #ifdef ARGOS_WITH_LUA
         virtual void CreateLuaState(lua_State* pt_lua_state);
 
@@ -55,6 +57,9 @@ namespace argos {
     protected:
 
         TReadings m_tReadings;
+
+        /** Keeps the address of this sensor. */
+        UInt16 m_iAddress;
 
     };
 }
