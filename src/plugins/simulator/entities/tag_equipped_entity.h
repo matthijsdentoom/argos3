@@ -67,11 +67,27 @@ namespace argos {
 
       virtual void Init(TConfigurationNode& t_tree);
 
-      virtual void Reset();
-
       virtual void Enable();
 
       virtual void Disable();
+
+      /**
+       * Programmatically creates a new tag.
+       * @param c_position The position of the tag.
+       * @param c_orientation The orientation of the tag.
+       * @param s_anchor The anchor of the tag.
+       * @param c_observable_angle The observable angle of the tag.
+       * @param f_side_length The side length of the tag.
+       * @param str_payload The payload of the tag.
+       * @see GetInstances()
+       * @see GetTag()
+       */
+      void AddTag(const CVector3& c_position,
+                  const CQuaternion& c_orientation,
+                  SAnchor& s_anchor,
+                  const CRadians& c_observable_angle,
+                  Real f_side_length,
+                  const std::string& str_payload);
 
       /**
        * Returns a tag by numeric index.
@@ -124,17 +140,11 @@ namespace argos {
       void SetTagPayloads(const std::vector<std::string>& vec_payloads);
 
       /**
-       * Adds the tags to the specified tag medium.
-       * @param c_medium The tag medium.
+       * Sets the medium associated to this entity.
+       * @param c_medium The medium to associate to this entity.
        * @see CTagMedium
        */
-      void AddToMedium(CTagMedium& c_medium);
-
-      /**
-       * Removes the tags from the associated tag medium.
-       * @see CTagMedium
-       */
-      void RemoveFromMedium();
+      void SetMedium(CTagMedium& c_medium);
 
       virtual std::string GetTypeDescription() const {
          return "tags";

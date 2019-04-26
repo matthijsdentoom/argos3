@@ -89,17 +89,10 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CTagEquippedEntity::Reset() {
-      for(SInstance& s_instance : m_vecInstances) {
-         s_instance.Tag.Reset();
-      }
-   }
-
-   /****************************************/
-   /****************************************/
-
    void CTagEquippedEntity::Enable() {
-      CEntity::Enable();
+      /* Perform generic enable behavior */
+      CComposableEntity::Enable();
+      /* Enable anchors */
       for(SInstance& s_instance : m_vecInstances) {
          s_instance.Anchor.Enable();
       }
@@ -109,7 +102,9 @@ namespace argos {
    /****************************************/
 
    void CTagEquippedEntity::Disable() {
-      CEntity::Disable();
+      /* Perform generic disable behavior */
+      CComposableEntity::Disable();
+      /* Disable anchors */
       for(SInstance& s_instance : m_vecInstances) {
          s_instance.Anchor.Disable();
       }
@@ -118,10 +113,38 @@ namespace argos {
    /****************************************/
    /****************************************/
 
+   void CTagEquippedEntity::AddTag(const CVector3& c_position,
+                                   const CQuaternion& c_orientation,
+                                   SAnchor& s_anchor,
+                                   const CRadians& c_observable_angle,
+                                   Real f_side_length,
+                                   const std::string& str_payload) {
+      /* create the new tag entity */
+      CTagEntity* pcTag =
+         new CTagEntity(this,
+                        "tag_" + std::to_string(m_vecInstances.size()),
+                        c_position,
+                        c_orientation,
+                        c_observable_angle,
+                        f_side_length,
+                        str_payload);
+      /* add it to the instances vector */
+      m_vecInstances.emplace_back(*pcTag,
+                                  s_anchor,
+                                  c_position,
+                                  c_orientation);
+      /* inform the base class about the new entity */
+      AddComponent(*pcTag);
+      UpdateComponents();
+   }
+
+   /****************************************/
+   /****************************************/
+
    CTagEntity& CTagEquippedEntity::GetTag(UInt32 un_index) {
       ARGOS_ASSERT(un_index < m_vecInstances.size(),
                    "CTagEquippedEntity::GetTag(), id=\"" <<
-                   GetContext() + GetId() <<
+                   GetContext() << GetId() <<
                    "\": index out of bounds: un_index = " <<
                    un_index <<
                    ", m_vecInstances.size() = " <<
@@ -136,7 +159,7 @@ namespace argos {
                                           const std::string& str_payload) {
       ARGOS_ASSERT(un_index < m_vecInstances.size(),
                    "CTagEquippedEntity::SetTagPayload(), id=\"" <<
-                   GetContext() + GetId() <<
+                   GetContext() << GetId() <<
                    "\": index out of bounds: un_index = " <<
                    un_index <<
                    ", m_vecInstances.size() = " <<
@@ -165,7 +188,7 @@ namespace argos {
       else {
          THROW_ARGOSEXCEPTION(
             "CTagEquippedEntity::SetTagPayloads(), id=\"" <<
-            GetContext() + GetId() <<
+            GetContext() << GetId() <<
             "\": number of tags (" <<
             m_vecInstances.size() <<
             ") does not equal the passed payload vector size (" <<
@@ -196,21 +219,10 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CTagEquippedEntity::AddToMedium(CTagMedium& c_medium) {
+   void CTagEquippedEntity::SetMedium(CTagMedium& c_medium) {
       for(SInstance& s_instance : m_vecInstances) {
-         s_instance.Tag.AddToMedium(c_medium);
+         s_instance.Tag.SetMedium(c_medium);
       }
-      Enable();
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void CTagEquippedEntity::RemoveFromMedium() {
-      for(SInstance& s_instance : m_vecInstances) {
-         s_instance.Tag.RemoveFromMedium();
-      }
-      Disable();
    }
 
    /****************************************/

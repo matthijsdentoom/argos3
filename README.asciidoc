@@ -72,7 +72,7 @@ Debian
 On Debian, you can install all of the necessary requirements
 with the following command:
 
- $ sudo apt-get install libfreeimage-dev libfreeimageplus-dev \
+ $ sudo apt-get install cmake libfreeimage-dev libfreeimageplus-dev \
    qt5-default freeglut3-dev libxi-dev libxmu-dev liblua5.2-dev \
    lua5.2 doxygen graphviz graphviz-dev asciidoc
 
@@ -233,8 +233,8 @@ run ARGoS:
  $ ./argos3 -q all    # this shows all the plugins recognized by ARGoS
 
 If you execute ARGoS with the graphical visualization, you'll notice that
-icons and textures are missing. This is normal, as ARGoS by default looks
-for them in the default install location. To fix this, you need to edit
+icons, models, and textures are missing. This is normal, as ARGoS by default
+looks for them in the default install location. To fix this, you need to edit
 the default settings of the GUI.
 
 On Linux, edit the file +$HOME/.config/Iridia-ULB/ARGoS.conf+ as follows:
@@ -245,14 +245,21 @@ On Linux, edit the file +$HOME/.config/Iridia-ULB/ARGoS.conf+ as follows:
  #
  icon_dir=/PATH/TO/argos3/src/plugins/simulator/visualizations/qt-opengl/icons/
  texture_dir=/PATH/TO/argos3/src/plugins/simulator/visualizations/qt-opengl/textures/
+ model_dir=/PATH/TO/argos3/src/plugins/simulator/visualizations/qt-opengl/models/
  #
  # more stuff
  #
 
-On Mac, write the following commands on the terminal window:
+On Mac, write the following commands on the terminal window to fix the paths manually:
 
- $ defaults write be.ac.ulb.Iridia.ARGoS MainWindow.texture_dir -string "/PATH/TO/argos3/src/plugins/simulator/visualizations/qt-opengl/textures/"
- $ defaults write be.ac.ulb.Iridia.ARGoS MainWindow.icon_dir -string "/PATH/TO/argos3/src/plugins/simulator/visualizations/qt-opengl/icons/"
+ $ defaults write info.argos-sim.ARGoS MainWindow.texture_dir -string "/PATH/TO/argos3/src/plugins/simulator/visualizations/qt-opengl/textures/"
+ $ defaults write info.argos-sim.ARGoS MainWindow.model_dir -string "/PATH/TO/argos3/src/plugins/simulator/visualizations/qt-opengl/models/"
+ $ defaults write info.argos-sim.ARGoS MainWindow.icon_dir -string "/PATH/TO/argos3/src/plugins/simulator/visualizations/qt-opengl/icons/"
+ $ killall -u YOURUSERNAME cfprefsd
+
+or use these commands to delete these paths and have ARGoS look for them:
+
+ $ defaults write info.argos-sim.ARGoS
  $ killall -u YOURUSERNAME cfprefsd
 
 Be sure to substitute +/PATH/TO/+ with the correct path that contains the +argos3+

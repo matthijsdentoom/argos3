@@ -11,9 +11,8 @@
 
 --[[ This function is executed every time you press the 'execute' button ]]
 function init()
-	robot.turret.set_speed_control_mode()
-	robot.turret.set_rotation_speed(1)
-	robot.wheels.set_velocity(0.125,-0.125)
+	reset()
+   log("[NOTE] This example demonstrates a four wheeled vehicle. The vehicle appears to slip at the moment and requires some further tuning of internal parameters");
 end
 
 
@@ -21,17 +20,11 @@ end
 --[[ This function is executed at each time step
      It must contain the logic of your controller ]]
 function step()
-	if #robot.cameras.turret_camera.tag_detector > 0 then
-		log("tag 1: " .. robot.cameras.turret_camera.tag_detector[1].payload)
-      --for index,corner in ipairs(robot.cameras.turret_camera.tag_detector[1].corners) do
-		--   log("corner " .. index .. ": x = " .. corner.x .. ", y = " .. corner.y)
-      --end
-	end
-	if #robot.cameras.turret_camera.led_detector > 0 then
-		log("led 1:")
-	   --log("center: x = " .. robot.cameras.turret_camera.led_detector[1].center.x .. ", y = " .. robot.cameras.turret_camera.led_detector[1].center.y)
-	end
-
+	log("wheel velocities: " ..
+		 string.format("%.2f", robot.joints.base_wheel_bl.encoder) .. ", " ..
+		 string.format("%.2f", robot.joints.base_wheel_fl.encoder) .. ", " ..
+		 string.format("%.2f", robot.joints.base_wheel_br.encoder) .. ", " ..
+		 string.format("%.2f", robot.joints.base_wheel_fr.encoder))
 end
 
 
@@ -42,7 +35,10 @@ end
      called. The state of sensors and actuators is reset
      automatically by ARGoS. ]]
 function reset()
-   -- put your code here
+	robot.joints.base_wheel_bl.set_target(1)
+	robot.joints.base_wheel_fl.set_target(1)
+	robot.joints.base_wheel_br.set_target(1)
+	robot.joints.base_wheel_fr.set_target(1)
 end
 
 

@@ -68,19 +68,41 @@ namespace argos {
 
       virtual void Init(TConfigurationNode& t_tree);
 
-      virtual void Reset();
-
       virtual void Enable();
 
       virtual void Disable();
 
       /**
+       * Programmatically creates a new directional LED.
+       * @param c_position The position of the LED.
+       * @param c_orientation The orientation of the LED.
+       * @param s_anchor The anchor of the LED.
+       * @param c_observable_angle The observable angle of the LED.
+       * @param c_color The color of the LED.
+       * @see GetInstances()
+       * @see GetLED()
+       */
+      void AddLED(const CVector3& c_position,
+                  const CQuaternion& c_orientation,
+                  SAnchor& s_anchor,
+                  const CRadians& c_observable_angle,
+                  const CColor& c_color);
+
+      /**
        * Returns an LED by numeric index.
        * @param un_index The index of the wanted LED.
        * @return An LED by numeric index.
-       * @see GetLEDs()
+       * @see GetInstances()
        */
       CDirectionalLEDEntity& GetLED(UInt32 un_index);
+
+      /**
+       * Returns an LED by numeric index as a const reference.
+       * @param un_index The index of the wanted LED.
+       * @return An LED as a const reference.
+       * @see GetInstances()
+       */
+      const CDirectionalLEDEntity& GetLED(UInt32 un_index) const;
 
       /**
        * Returns all the LEDs.
@@ -124,17 +146,11 @@ namespace argos {
       void SetLEDColors(const std::vector<CColor>& vec_colors);
 
       /**
-       * Adds the LEDs to the wanted LED medium.
-       * @param c_medium The LED medium.
+       * Sets the medium associated to this entity.
+       * @param c_medium The medium to associate to this entity.
        * @see CDirectionalLEDMedium
        */
-      void AddToMedium(CDirectionalLEDMedium& c_medium);
-
-      /**
-       * Removes the LEDs from the associated LED medium.
-       * @see CDirectionalLEDMedium
-       */
-      void RemoveFromMedium();
+      void SetMedium(CDirectionalLEDMedium& c_medium);
 
       virtual std::string GetTypeDescription() const {
          return "directional_leds";

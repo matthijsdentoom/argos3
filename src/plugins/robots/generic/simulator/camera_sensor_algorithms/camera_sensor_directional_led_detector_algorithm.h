@@ -18,7 +18,7 @@ namespace argos {
 
 #include <argos3/plugins/simulator/entities/directional_led_entity.h>
 #include <argos3/plugins/robots/generic/simulator/camera_sensor_algorithm.h>
-#include <argos3/plugins/robots/generic/control_interface/ci_camera_sensor_algorithms/ci_camera_sensor_led_detector_algorithm.h>
+#include <argos3/plugins/robots/generic/control_interface/ci_camera_sensor_algorithms/ci_camera_sensor_directional_led_detector_algorithm.h>
 
 namespace argos {
    
@@ -28,7 +28,7 @@ namespace argos {
     * acquired by the simulated or by the physical camera.
     */
    class CCameraSensorDirectionalLEDDetectorAlgorithm : public CCameraSensorSimulatedAlgorithm,
-                                                        public CCI_CameraSensorLEDDetectorAlgorithm {
+                                                        public CCI_CameraSensorDirectionalLEDDetectorAlgorithm {
       
    public:
       class CUpdateOperation : public CBaseUpdateOperation,
@@ -38,12 +38,12 @@ namespace argos {
          /* constructor */
          CUpdateOperation(const CSquareMatrix<3>& c_projection_matrix,
                           const std::array<CPlane, 6>& arr_frustum_planes,
-                          const CTransformationMatrix3& c_world_to_camera_transform,
+                          const CTransformationMatrix3& c_camera_to_world_transform,
                           const CVector3& c_camera_location,
                           CCameraSensorDirectionalLEDDetectorAlgorithm& c_algorithm) :
             CBaseUpdateOperation(c_projection_matrix,
                                  arr_frustum_planes,
-                                 c_world_to_camera_transform,
+                                 c_camera_to_world_transform,
                                  c_camera_location),
             m_cAlgorithm(c_algorithm) {
             m_cOcclusionCheckRay.SetStart(c_camera_location);
@@ -51,7 +51,7 @@ namespace argos {
          /* destructor */
          virtual ~CUpdateOperation() {}
          /* operation */
-         bool operator()(CDirectionalLEDEntity& c_led) {
+         virtual bool operator()(CDirectionalLEDEntity& c_led) {
             if(c_led.GetColor() == CColor::BLACK) {
                return true;
             }
@@ -88,7 +88,7 @@ namespace argos {
 
       virtual void Update(const CSquareMatrix<3>& c_projection_matrix,
                           const std::array<CPlane, 6>& arr_frustum_planes,
-                          const CTransformationMatrix3& c_world_to_camera_transform,
+                          const CTransformationMatrix3& c_camera_to_world_transform,
                           const CVector3& c_camera_location,
                           const CVector3& c_bounding_box_position,
                           const CVector3& c_bounding_box_half_extents);

@@ -82,17 +82,10 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CRadioEquippedEntity::Reset() {
-      for(SInstance& s_instance : m_vecInstances) {
-         s_instance.Radio.Reset();
-      }
-   }
-
-   /****************************************/
-   /****************************************/
-
    void CRadioEquippedEntity::Enable() {
-      CEntity::Enable();
+      /* Perform generic enable behavior */
+      CComposableEntity::Enable();
+      /* Enable anchors */
       for(SInstance& s_instance : m_vecInstances) {
          s_instance.Anchor.Enable();
       }
@@ -102,11 +95,34 @@ namespace argos {
    /****************************************/
 
    void CRadioEquippedEntity::Disable() {
-      CEntity::Disable();
+      /* Perform generic disable behavior */
+      CComposableEntity::Disable();
+      /* Disable anchors */
       for(SInstance& s_instance : m_vecInstances) {
          s_instance.Anchor.Disable();
       }
    }
+
+   /****************************************/
+   /****************************************/
+
+   void CRadioEquippedEntity::AddRadio(const CVector3& c_offset,
+                                       SAnchor& s_anchor,
+                                       Real f_transmit_range) {
+      /* create the new radio entity */
+      CRadioEntity* pcRadio =
+         new CRadioEntity(this,
+                          "radio_" + std::to_string(m_vecInstances.size()),
+                          f_transmit_range);
+      /* add it to the instances vector */
+      m_vecInstances.emplace_back(*pcRadio,
+                                  s_anchor,
+                                  c_offset);
+      /* inform the base class about the new entity */
+      AddComponent(*pcRadio);
+      UpdateComponents();
+   }
+
 
    /****************************************/
    /****************************************/
@@ -140,21 +156,10 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   void CRadioEquippedEntity::AddToMedium(CRadioMedium& c_medium) {
+   void CRadioEquippedEntity::SetMedium(CRadioMedium& c_medium) {
       for(SInstance& s_instance : m_vecInstances) {
-         s_instance.Radio.AddToMedium(c_medium);
+         s_instance.Radio.SetMedium(c_medium);
       }
-      Enable();
-   }
-
-   /****************************************/
-   /****************************************/
-
-   void CRadioEquippedEntity::RemoveFromMedium() {
-      for(SInstance& s_instance : m_vecInstances) {
-         s_instance.Radio.RemoveFromMedium();
-      }
-      Disable();
    }
 
    /****************************************/

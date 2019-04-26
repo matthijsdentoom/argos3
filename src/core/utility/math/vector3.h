@@ -18,6 +18,7 @@ namespace argos {
 #include <argos3/core/utility/math/angles.h>
 #include <argos3/core/utility/math/vector2.h>
 #include <argos3/core/utility/string_utilities.h>
+#include <array>
 #include <iostream>
 #include <cmath>
 
@@ -69,6 +70,16 @@ namespace argos {
          m_fX(f_x),
          m_fY(f_y),
          m_fZ(f_z) {
+      }
+
+      /**
+       * Class constructor.
+       * It initializes the vector from Cartesian coordinates.
+       * @param arr_coordinates The coordinates.
+       * @see Set()
+       */
+      CVector3(const std::array<Real, 3>& arr_coordinates) {
+         Set(arr_coordinates);
       }
 
       /**
@@ -146,6 +157,16 @@ namespace argos {
          m_fX = f_x;
          m_fY = f_y;
          m_fZ = f_z;
+      }
+
+      /**
+       * Sets the vector contents from Cartesian coordinates.
+       * @param arr_coordinates The new coordinates.
+       */
+      inline void Set(const std::array<Real, 3>& arr_coordinates) {
+         m_fX = arr_coordinates[0];
+         m_fY = arr_coordinates[1];
+         m_fZ = arr_coordinates[2];
       }
 
       /**
