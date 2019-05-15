@@ -23,8 +23,8 @@ namespace argos {
    /****************************************/
 
    CCI_FootBotProximitySensor::CCI_FootBotProximitySensor() :
-      m_tReadings(24) {
-      for(size_t i = 0; i < 24; ++i) {
+      m_tReadings(12) {
+      for(size_t i = 0; i < 12; ++i) {
          m_tReadings[i].Angle = START_ANGLE + i * SPACING;
          m_tReadings[i].Angle.SignedNormalize();
       }
