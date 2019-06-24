@@ -65,6 +65,8 @@ namespace argos {
 
       /** Reference to the space */
       CSpace& m_cSpace;
+
+      UInt32 m_iNumSensors;
    };
 
 }

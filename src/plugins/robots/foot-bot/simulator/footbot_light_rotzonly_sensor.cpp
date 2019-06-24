@@ -18,7 +18,7 @@ namespace argos {
    /****************************************/
 
    static CRange<Real> SENSOR_RANGE(0.0f, 1.0f);
-   static CRadians SENSOR_SPACING      = CRadians(ARGOS_PI / 12.0f);
+   static CRadians SENSOR_SPACING      = CRadians(ARGOS_PI / 6.0f);
    static CRadians SENSOR_HALF_SPACING = SENSOR_SPACING * 0.5;
 
    /****************************************/
@@ -31,7 +31,6 @@ namespace argos {
    }
 
    static Real ComputeReading(Real f_distance) {
-       std::cout << f_distance << std::endl;
       if(f_distance > 5.0f) {
          return 0.0f;
       }
@@ -92,7 +91,8 @@ namespace argos {
             m_cNoiseRange.Set(-fNoiseLevel, fNoiseLevel);
             m_pcRNG = CRandom::CreateRNG("argos");
          }
-         m_tReadings.resize(m_pcLightEntity->GetNumSensors());
+         m_iNumSensors = m_pcLightEntity->GetNumSensors();
+         m_tReadings.resize(m_iNumSensors);
       }
       catch(CARGoSException& ex) {
          THROW_ARGOSEXCEPTION_NESTED("Initialization error in rot_z_only light sensor", ex);
@@ -129,9 +129,7 @@ namespace argos {
        *    NOTE: the readings are additive
        * 4. go through the sensors and clamp their values
        */
-         for(CSpace::TMapPerType::iterator it = mapLights.begin();
-             it != mapLights.end();
-             ++it) {
+         for(CSpace::TMapPerType::iterator it = mapLights.begin(); it != mapLights.end(); ++it) {
             /* Get a reference to the light */
             CLightEntity& cLight = *(any_cast<CLightEntity*>(it->second));
             /* Consider the light only if it has non zero intensity */
@@ -166,13 +164,14 @@ namespace argos {
                   SInt32 nReadingIdx = (fIdx > 0) ? fIdx + 0.5f : fIdx - 0.5f;
                   /* Set the actual readings */
                   Real fReading = cRobotToLight.Length();
+
                   /*
                    * Take 6 readings before closest sensor and 6 readings after - thus we
                    * process sensors that are with 180 degrees of intersection of light
                    * ray with robot body
                    */
-                  for(SInt32 nIndexOffset = -6; nIndexOffset < 7; ++nIndexOffset) {
-                     UInt32 unIdx = Modulo(nReadingIdx + nIndexOffset, 24);
+                  for(SInt32 nIndexOffset = -3; nIndexOffset < 4; ++nIndexOffset) {
+                     UInt32 unIdx = Modulo(nReadingIdx + nIndexOffset, m_iNumSensors);
                      CRadians cAngularDistanceFromOptimalLightReceptionPoint = Abs((cAngleLightWrtFootbot - m_tReadings[unIdx].Angle).SignedNormalize());
                      /*
                       * ComputeReading gives value as if sensor was perfectly in line with
@@ -193,12 +192,12 @@ namespace argos {
          }
          /* Apply noise to the sensors */
          if(m_bAddNoise) {
-            for(size_t i = 0; i < 24; ++i) {
+            for(size_t i = 0; i < m_iNumSensors; ++i) {
                m_tReadings[i].Value += m_pcRNG->Uniform(m_cNoiseRange);
             }
          }
          /* Trunc the reading between 0 and 1 */
-         for(size_t i = 0; i < 24; ++i) {
+         for(size_t i = 0; i < m_iNumSensors; ++i) {
             SENSOR_RANGE.TruncValue(m_tReadings[i].Value);
          }
       }

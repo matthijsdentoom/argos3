@@ -15,15 +15,16 @@ namespace argos {
    /****************************************/
    /****************************************/
 
-   static CRadians SPACING = CRadians(ARGOS_PI / 12.0f);
+   static UInt32 num_sensors = 12;
+   static CRadians SPACING = CRadians(ARGOS_PI / 6.0f);
    static CRadians START_ANGLE = SPACING * 0.5f;
 
    /****************************************/
    /****************************************/
 
    CCI_FootBotLightSensor::CCI_FootBotLightSensor() :
-      m_tReadings(24) {
-      for(size_t i = 0; i < 24; ++i) {
+      m_tReadings(num_sensors) {
+      for(size_t i = 0; i < num_sensors; ++i) {
          m_tReadings[i].Angle = START_ANGLE + i * SPACING;
          m_tReadings[i].Angle.SignedNormalize();
       }
