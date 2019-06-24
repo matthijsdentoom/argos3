@@ -31,11 +31,12 @@ namespace argos {
    }
 
    static Real ComputeReading(Real f_distance) {
-      if(f_distance > 2.5f) {
+       std::cout << f_distance << std::endl;
+      if(f_distance > 5.0f) {
          return 0.0f;
       }
       else {
-         return ::exp(-f_distance * 2.0f);
+         return ::exp(-f_distance);
       }
    }
 
